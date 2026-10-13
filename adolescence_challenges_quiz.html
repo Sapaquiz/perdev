@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Adolescence Challenges Quiz</title>
+<style>
+  :root { color-scheme: dark; --bg:#0b1020; --panel:#151d33; --panel2:#202b46; --text:#f4f7ff; --muted:#b8c3dc; --accent:#8b9cff; --good:#36d399; --bad:#ff7185; }
+  * { box-sizing:border-box; }
+  body { margin:0; padding:20px; font-family:system-ui,-apple-system,Segoe UI,sans-serif; background:radial-gradient(circle at top,#1b2850,var(--bg) 55%); color:var(--text); }
+  .wrap { max-width:850px; margin:0 auto; }
+  header { text-align:center; padding:20px 10px 14px; }
+  .tag { display:inline-block; padding:6px 11px; border:1px solid #43517b; border-radius:999px; color:#dce3ff; font-size:.8rem; }
+  h1 { margin:12px 0 8px; font-size:clamp(1.6rem,5vw,2.35rem); }
+  header p { color:var(--muted); margin:0; }
+  .topbar { display:flex; gap:12px; justify-content:space-between; align-items:center; flex-wrap:wrap; margin:18px 0; }
+  .progress { flex:1; min-width:150px; height:9px; background:#293451; border-radius:99px; overflow:hidden; }
+  .progress div { height:100%; width:0%; background:linear-gradient(90deg,#8b9cff,#d5a8ff); transition:width .25s; }
+  .score { background:var(--panel2); padding:9px 13px; border-radius:12px; font-weight:700; }
+  .question { background:rgba(21,29,51,.96); border:1px solid #2b3859; border-radius:18px; padding:20px; margin:14px 0; box-shadow:0 10px 28px #0002; }
+  .qhead { display:flex; gap:10px; align-items:flex-start; }
+  .num { flex:0 0 34px; height:34px; display:grid; place-items:center; background:#303d63; color:#fff; border-radius:10px; font-weight:800; }
+  .qtitle { margin:3px 0 15px; font-size:1.05rem; line-height:1.5; }
+  .options { display:grid; gap:9px; }
+  .option { display:flex; gap:10px; align-items:flex-start; background:#202b46; border:1px solid #344363; padding:12px 13px; border-radius:12px; cursor:pointer; transition:.15s; }
+  .option:hover { border-color:var(--accent); transform:translateY(-1px); }
+  .option input { margin-top:4px; accent-color:var(--accent); }
+  .option.correct { border-color:var(--good); background:#123b38; }
+  .option.incorrect { border-color:var(--bad); background:#452432; }
+  .feedback { margin-top:12px; font-size:.94rem; color:var(--muted); line-height:1.5; }
+  .feedback.good { color:var(--good); } .feedback.bad { color:#ff9cab; }
+  .actions { display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin:24px 0 12px; }
+  button { border:0; border-radius:12px; padding:12px 18px; font:inherit; font-weight:750; cursor:pointer; }
+  .primary { background:var(--accent); color:#10152a; } .secondary { background:#293451; color:var(--text); border:1px solid #43517b; }
+  button:focus-visible,.option:focus-within { outline:3px solid #d5a8ff; outline-offset:2px; }
+  #result { display:none; text-align:center; padding:22px; border:1px solid #43517b; background:var(--panel); border-radius:18px; margin:20px 0; }
+  #result h2 { margin-top:0; } #result .big { font-size:2rem; font-weight:850; }
+  .small { color:var(--muted); font-size:.88rem; text-align:center; margin-top:20px; }
+  @media(max-width:500px){ body{padding:12px}.question{padding:15px}.option{padding:11px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <span class="tag">GRADE 12 • REVIEW QUIZ</span>
+  <h1>Pitfalls and Challenges of Adolescence</h1>
+  <p>10 multiple-choice questions • Choose the best answer</p>
+</header>
+<div class="topbar">
+  <div class="progress" aria-label="Quiz progress"><div id="progressFill"></div></div>
+  <div class="score" id="answeredCount">Answered: 0 / 10</div>
+</div>
+<form id="quizForm">
+<div id="questions"></div>
+<div class="actions">
+  <button type="button" class="primary" id="checkBtn">Check Answers</button>
+  <button type="button" class="secondary" id="shuffleBtn">Shuffle Questions</button>
+  <button type="button" class="secondary" id="resetBtn">Try Again</button>
+</div>
+</form>
+<section id="result" aria-live="polite">
+  <h2>Your Results</h2>
+  <div class="big" id="scoreText"></div>
+  <p id="scoreComment"></p>
+</section>
+<p class="small">Think about the situations carefully. Your answers are checked after you press “Check Answers.”</p>
+</div>
+<script>
+const bank = [
+ {q:"Your friends pressure you to do something you know is wrong. What is the best response?", a:["Do it so they will like you","Politely say no and make your own decision","Blame someone else","Do it without thinking"], correct:1, exp:"Peer pressure is when you feel pushed to fit in. You can say no and choose what is safe and right."},
+ {q:"You feel stressed because you have many school assignments. What is a helpful first step?", a:["Ignore all the assignments","Stay up all night scrolling","Make a plan and do tasks one at a time","Give up immediately"], correct:2, exp:"Planning helps you manage academic pressure and makes large tasks feel more manageable."},
+ {q:"You chose something quickly while angry and later regretted it. What pitfall does this show?", a:["Good time management","Self-confidence","Managing relationships","Making an impulsive decision"], correct:3, exp:"An impulsive decision is made without thinking carefully about the possible consequences."},
+ {q:"You spend so much time on social media that homework is unfinished. What challenges are shown?", a:["Excessive social media use and poor time management","Healthy habits","Good planning","Financial responsibility"], correct:0, exp:"Too much time online can distract you from schoolwork and other responsibilities."},
+ {q:"You are afraid to share an answer in class because you think others may laugh. What might you be experiencing?", a:["Financial responsibility","Lack of self-confidence","Peer support","Career planning"], correct:1, exp:"Lack of self-confidence means doubting your abilities or feeling unsure of yourself."},
+ {q:"You and your parents disagree because you want more independence. What is this an example of?", a:["Academic pressure","Excessive social media use","Family conflict","Career choice"], correct:2, exp:"Family conflicts can happen when teenagers and parents disagree about rules, freedom, or responsibilities."},
+ {q:"You are unsure which college course or career to choose. Which challenge does this relate to?", a:["Choosing a career or course","Poor time management","Peer pressure","Emotional changes"], correct:0, exp:"Choosing a course or career means thinking about your interests, abilities, and future goals."},
+ {q:"What is one healthy way to handle stress or personal problems?", a:["Keep every problem secret","Take your anger out on others","Avoid everyone forever","Talk to a trusted person and seek support"], correct:3, exp:"A trusted family member, teacher, or friend may help you think through the problem and find support."},
+ {q:"You have a limited allowance for the week. What is the most responsible choice?", a:["Spend it all on the first day","Plan your needs and save some if possible","Borrow money for everything","Buy things only because friends have them"], correct:1, exp:"Managing money means planning spending so that important needs can be covered."},
+ {q:"What is one useful lesson from the challenges of adolescence?", a:["You should never ask for help","Mistakes mean you cannot improve","You can learn to make responsible decisions and become more independent","Friends should decide everything for you"], correct:2, exp:"With practice and support, challenges can help adolescents build responsibility, independence, and maturity."}
+];
+let questions = [...bank];
+let checked = false;
+const questionsEl = document.getElementById('questions');
+function render() {
+  checked = false;
+  document.getElementById('result').style.display = 'none';
+  questionsEl.innerHTML = questions.map((item,i)=>`
+    <article class="question" data-index="${i}">
+      <div class="qhead"><div class="num">${i+1}</div><div style="flex:1;width:100%">
+        <p class="qtitle">${item.q}</p>
+        <div class="options">
+          ${item.a.map((answer,j)=>`<label class="option" data-choice="${j}">
+            <input type="radio" name="q${i}" value="${j}">
+            <span><strong>${String.fromCharCode(65+j)}.</strong> ${answer}</span>
+          </label>`).join('')}
+        </div>
+        <div class="feedback" id="feedback${i}" aria-live="polite"></div>
+      </div></div>
+    </article>`).join('');
+  questionsEl.querySelectorAll('input').forEach(input=>input.addEventListener('change',updateProgress));
+  updateProgress();
+}
+function updateProgress(){
+  const count = questions.filter((_,i)=>document.querySelector(`input[name="q${i}"]:checked`)).length;
+  document.getElementById('answeredCount').textContent=`Answered: ${count} / 10`;
+  document.getElementById('progressFill').style.width=(count/10*100)+'%';
+}
+function checkAnswers(){
+  if(checked) return;
+  checked=true;
+  let score=0;
+  questions.forEach((item,i)=>{
+    const selected=document.querySelector(`input[name="q${i}"]:checked`);
+    const labels=questionsEl.querySelectorAll(`article[data-index="${i}"] .option`);
+    labels.forEach((label,j)=>{
+      label.querySelector('input').disabled=true;
+      if(j===item.correct) label.classList.add('correct');
+      if(selected && Number(selected.value)===j && j!==item.correct) label.classList.add('incorrect');
+    });
+    const fb=document.getElementById(`feedback${i}`);
+    if(selected && Number(selected.value)===item.correct){
+      score++; fb.className='feedback good'; fb.textContent='Correct! '+item.exp;
+    } else {
+      fb.className='feedback bad'; fb.textContent=(selected?'Not quite. ':'Not answered. ')+`Correct answer: ${String.fromCharCode(65+item.correct)}. ${item.a[item.correct]}. `+item.exp;
+    }
+  });
+  const result=document.getElementById('result');
+  result.style.display='block';
+  document.getElementById('scoreText').textContent=`${score} / 10`;
+  document.getElementById('scoreComment').textContent=score===10?'Excellent! You understand the topic very well.':score>=7?'Good job! Review the explanations for the questions you missed.':score>=5?'Nice effort! Read the explanations and try again.':'Keep practicing. Review the report and try the quiz again.';
+  document.getElementById('checkBtn').disabled=true;
+  result.scrollIntoView({behavior:'smooth',block:'center'});
+}
+function shuffle(){
+  for(let i=questions.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[questions[i],questions[j]]=[questions[j],questions[i]];}
+  render();
+  document.getElementById('checkBtn').disabled=false;
+}
+function reset(){
+  questions=[...bank];
+  render();
+  document.getElementById('checkBtn').disabled=false;
+}
+document.getElementById('checkBtn').addEventListener('click',checkAnswers);
+document.getElementById('shuffleBtn').addEventListener('click',shuffle);
+document.getElementById('resetBtn').addEventListener('click',reset);
+render();
+</script>
+</body>
+</html>
